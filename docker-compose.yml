@@ -1,0 +1,14 @@
+services:
+  api:
+    image: cpr-api:dev
+    build:
+      context: ./api
+      dockerfile: Dockerfile.dev
+    ports:
+      - "${API_PORT:-5125}:8080"
+    volumes:
+      - ./api:/src
+      - /src/bin
+      - /src/obj
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
