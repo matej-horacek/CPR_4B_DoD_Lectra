@@ -1,3 +1,4 @@
+using api.Data;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using Scalar.AspNetCore;
@@ -13,6 +14,8 @@ var connectionString = new NpgsqlConnectionStringBuilder
     Username = cfg["POSTGRES_USER"] ?? "postgres",
     Password = cfg["POSTGRES_PASSWORD"] ?? "postgres",
 }.ConnectionString;
+
+// Sem přidávejte svoje services
 
 builder.Services.AddDbContext<AppDbContext>(o => o.UseNpgsql(connectionString));
 builder.Services.AddControllers();
@@ -31,5 +34,6 @@ if (app.Environment.IsDevelopment())
     app.MapScalarApiReference();
 }
 
+app.MapGet("/health", () => Results.Ok());   // Docker healthcheck
 app.MapControllers();
 app.Run();
