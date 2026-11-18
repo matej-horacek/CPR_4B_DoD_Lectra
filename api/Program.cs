@@ -1,4 +1,5 @@
 using api.Data;
+using api.Data.Entities;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using Scalar.AspNetCore;
@@ -17,7 +18,11 @@ var connectionString = new NpgsqlConnectionStringBuilder
 
 // Sem přidávejte svoje services
 
-builder.Services.AddDbContext<AppDbContext>(o => o.UseNpgsql(connectionString));
+builder.Services.AddDbContext<AppDbContext>(o => o
+    .UseNpgsql(connectionString)
+    .UseSnakeCaseNamingConvention());
+builder.Services.AddIdentityCore<User>()
+    .AddEntityFrameworkStores<AppDbContext>();
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 

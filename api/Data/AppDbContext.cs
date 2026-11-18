@@ -1,15 +1,19 @@
 using api.Data.Entities;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace api.Data;
 
-public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
+public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityUserContext<User, int>(options)
 {
-    public DbSet<ExampleItem> ExampleItems => Set<ExampleItem>();
+    public DbSet<Subject> Subjects => Set<Subject>();
+    public DbSet<Recording> Recordings => Set<Recording>();
+    public DbSet<ProcessingResult> ProcessingResults => Set<ProcessingResult>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        // Načte všechny IEntityTypeConfiguration z Data/Configurations
+        base.OnModelCreating(modelBuilder);
+
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
     }
 }
