@@ -1,5 +1,6 @@
-services:
+services:  
   api:
+    container_name: lectora-api
     image: cpr-api:dev
     build:
       context: ./api
@@ -13,7 +14,7 @@ services:
       - ./data:/var/recordings
     environment:
       ASPNETCORE_ENVIRONMENT: Development
-      POSTGRES_HOST: postgres
+      POSTGRES_HOST: lectora-postgres
       POSTGRES_PORT: 5432
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
@@ -21,8 +22,11 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    networks:
+      - lectora-db
 
   postgres:
+    container_name: lectora-postgres
     image: postgres:17
     restart: unless-stopped
     environment:
@@ -38,6 +42,12 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - lectora-db
 
 volumes:
   postgres_data:
+
+networks:
+  lectora-db:
+    driver: bridge
