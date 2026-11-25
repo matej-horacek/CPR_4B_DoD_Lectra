@@ -12,4 +12,4 @@ public record RecordingDTO(
     DateTimeOffset CreatedAt
 );
 
-public record RecordingUploadRequest(IFormFile File, int UserId, int SubjectId, string Title);
+public record RecordingUploadRequest(int UserId, int SubjectId, string Title);

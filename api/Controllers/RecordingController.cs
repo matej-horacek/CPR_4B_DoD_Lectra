@@ -10,7 +10,8 @@ namespace api.Controllers
         [HttpPost]
         [Route("upload")]
         public async Task<IActionResult> Upload(
-            [FromBody] RecordingUploadRequest request,
+            IFormFile file,
+            [FromForm] RecordingUploadRequest request,
             CancellationToken ct
         )
         {
@@ -33,7 +34,7 @@ namespace api.Controllers
                     useAsync: true
                 );
 
-                await request.File.CopyToAsync(destination, ct);
+                await file.CopyToAsync(destination, ct);
 
                 RecordingDTO recording = await recordingService.SaveRecordingAsync(
                     filePath,
