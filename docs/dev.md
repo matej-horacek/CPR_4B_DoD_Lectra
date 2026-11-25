@@ -2,27 +2,36 @@
 
 ## První spuštění
 
-Potřebuješ [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0) a Docker.
-
 1. Naklonuj repozitář a přepni se na `dev`:
    ```bash
    git clone git@github.com:matej-horacek/CPR_4B_DoD_Lectora.git
    cd CPR_4B_DoD_Lectora
    git switch dev
    ```
-2. Vytvoř si lokální `.env` (necommituje se):
+2. Inicializuj projekt (stačí jednou):
    ```bash
-   cp .env.example .env
+   make init 
    ```
-3. Spusť databázi:
+   Skript `scripts/init.sh` 
+
+3. Spusť vývojové prostředí:
    ```bash
-   docker compose up -d
+   make dev
    ```
-4. Spusť API:
-   ```bash
-   dotnet run --project api
-   ```
-   Swagger běží na <http://localhost:5125/swagger>.
+   Skript `scripts/dev.sh`
+   - API dokumentace (Scalar): <http://localhost:5125/scalar>
+   - PostgreSQL: `localhost:5432`
+
+## Příkazy
+
+| Příkaz                                                   | Co dělá                              |
+| -------------------------------------------------------- | ------------------------------------ |
+| `make`                                                   | vypíše dostupné příkazy              |
+| `make init`                                              |  `scripts/init.sh`  |
+| `make dev`                                               |  `scripts/dev.sh` |
+| `docker compose logs -f api`                             | logy API                             |
+| `docker compose down`                                    | zastaví vývojové prostředí           |
+| `docker compose -f docker-compose.prod.yml up --build -d` | spustí produkční verzi               |
 
 ## Pojmenování větví
 

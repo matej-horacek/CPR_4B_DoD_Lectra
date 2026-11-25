@@ -1,4 +1,27 @@
 services:
+  api:
+    image: cpr-api:dev
+    build:
+      context: ./api
+      dockerfile: Dockerfile.dev
+    ports:
+      - "${API_PORT:-5125}:8080"
+    volumes:
+      - ./api:/src
+      - /src/bin
+      - /src/obj
+      - ./data:/var/recordings
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-lectora}
+    depends_on:
+      postgres:
+        condition: service_healthy
+
   postgres:
     image: postgres:17
     restart: unless-stopped
@@ -15,24 +38,6 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-
-  api:
-    build: ./api
-    restart: unless-stopped
-    environment:
-      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
-      POSTGRES_HOST: postgres
-      POSTGRES_PORT: 5432
-      POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-      POSTGRES_DB: ${POSTGRES_DB:-lectora}
-    depends_on:
-      postgres:
-        condition: service_healthy
-    ports:
-      - "${API_PORT:-8080}:8080"
-    volumes:
-      - ./data:/var/recordings
 
 volumes:
   postgres_data:
