@@ -19,9 +19,29 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
       POSTGRES_DB: ${POSTGRES_DB:-lectora}
+      WHISPER_URL: http://lectora-whisper:8000
     depends_on:
       postgres:
         condition: service_healthy
+      whisper:
+        condition: service_started
+    networks:
+      - lectora-db
+
+  whisper:
+    container_name: lectora-whisper
+    image: cpr-whisper:dev
+    build:
+      context: ./whisper
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "${WHISPER_PORT:-8000}:8000"
+    volumes:
+      - ./whisper/models:/models
+    environment:
+      OMP_NUM_THREADS: "4"
+      WHISPER_MODEL: "auto"
     networks:
       - lectora-db
 

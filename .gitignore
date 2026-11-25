@@ -3,12 +3,21 @@
 .env.*
 !.env.example
 
+# Recordings data
+data/*
+!data/.gitkeep
+!data/01a211f9-497e-759f-8a75-648639dd8022.mp3
+
 # IDE
 .vs/
 .idea/
 .vscode/
 *.user
 *.suo
+
+# Python
+__pycache__/
+*.py[cod]
 
 # OS
 .DS_Store

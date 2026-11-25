@@ -13,10 +13,25 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
       POSTGRES_DB: ${POSTGRES_DB:-lectora}
+      WHISPER_URL: http://whisper:8000
     depends_on:
       postgres:
         condition: service_healthy
+      whisper:
+        condition: service_started
     restart: unless-stopped
+
+  whisper:
+    image: cpr-whisper:prod
+    build:
+      context: ./whisper
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    volumes:
+      - ./whisper/models:/models
+    environment:
+      OMP_NUM_THREADS: "4"
+      WHISPER_MODEL: "auto"
 
   postgres:
     image: postgres:17

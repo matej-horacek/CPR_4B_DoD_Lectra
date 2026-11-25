@@ -1,5 +1,6 @@
 using api.Data;
 using api.Data.Entities;
+using api.Services;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using Scalar.AspNetCore;
@@ -16,13 +17,26 @@ var connectionString = new NpgsqlConnectionStringBuilder
     Password = cfg["POSTGRES_PASSWORD"] ?? "postgres",
 }.ConnectionString;
 
-// Sem přidávejte svoje services
-
+// Services
 builder.Services.AddDbContext<AppDbContext>(o => o
     .UseNpgsql(connectionString)
     .UseSnakeCaseNamingConvention());
+
 builder.Services.AddIdentityCore<User>()
     .AddEntityFrameworkStores<AppDbContext>();
+
+builder.Services.AddHttpClient<IWhisperClient, WhisperClient>((sp, client) =>
+{
+    var whisperUrl = cfg["WHISPER_URL"] ?? "http://localhost:8000";
+    if (!whisperUrl.EndsWith('/'))
+    {
+        whisperUrl += "/";
+    }
+    client.BaseAddress = new Uri(whisperUrl);
+    // Transcriptions of full lectures can take several minutes
+    client.Timeout = TimeSpan.FromMinutes(10);
+});
+
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
