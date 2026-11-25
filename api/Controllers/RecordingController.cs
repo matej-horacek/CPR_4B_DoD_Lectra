@@ -35,7 +35,7 @@ namespace api.Controllers
 
                 await request.File.CopyToAsync(destination, ct);
 
-                await recordingService.SaveRecordingAsync(
+                RecordingDTO recording = await recordingService.SaveRecordingAsync(
                     filePath,
                     request.UserId,
                     request.SubjectId,
@@ -43,7 +43,7 @@ namespace api.Controllers
                     ct
                 );
 
-                return Ok();
+                return Ok(recording);
             }
             catch
             {
