@@ -11,8 +11,12 @@ services:
       - /src/bin
       - /src/obj
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__Default=Host=postgres;Port=5432;Database=${POSTGRES_DB:-lectora};Username=${POSTGRES_USER:-postgres};Password=${POSTGRES_PASSWORD:-postgres}
+      ASPNETCORE_ENVIRONMENT: Development
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-lectora}
     depends_on:
       postgres:
         condition: service_healthy

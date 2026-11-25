@@ -1,25 +1,44 @@
+using api.Data;
+using api.Data.Entities;
+using Microsoft.EntityFrameworkCore;
+using Npgsql;
+using Scalar.AspNetCore;
+
 var builder = WebApplication.CreateBuilder(args);
+var cfg = builder.Configuration;
 
-// Add services to the container.
+var connectionString = new NpgsqlConnectionStringBuilder
+{
+    Host     = cfg["POSTGRES_HOST"] ?? "localhost",
+    Port     = int.Parse(cfg["POSTGRES_PORT"] ?? "5432"),
+    Database = cfg["POSTGRES_DB"] ?? "lectora",
+    Username = cfg["POSTGRES_USER"] ?? "postgres",
+    Password = cfg["POSTGRES_PASSWORD"] ?? "postgres",
+}.ConnectionString;
 
+// Sem přidávejte svoje services
+
+builder.Services.AddDbContext<AppDbContext>(o => o
+    .UseNpgsql(connectionString)
+    .UseSnakeCaseNamingConvention());
+builder.Services.AddIdentityCore<User>()
+    .AddEntityFrameworkStores<AppDbContext>();
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddOpenApi();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+using (var scope = app.Services.CreateScope())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    scope.ServiceProvider.GetRequiredService<AppDbContext>().Database.Migrate();
 }
 
-app.UseHttpsRedirection();
+if (app.Environment.IsDevelopment())
+{
+    app.MapOpenApi();
+    app.MapScalarApiReference();
+}
 
-app.UseAuthorization();
-
+app.MapGet("/health", () => Results.Ok());   // Docker healthcheck
 app.MapControllers();
-
 app.Run();

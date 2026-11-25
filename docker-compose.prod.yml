@@ -7,8 +7,12 @@ services:
     ports:
       - "${API_PORT:-5125}:8080"
     environment:
-      - ASPNETCORE_ENVIRONMENT=Production
-      - ConnectionStrings__Default=Host=postgres;Port=5432;Database=${POSTGRES_DB:-lectora};Username=${POSTGRES_USER:-postgres};Password=${POSTGRES_PASSWORD:-postgres}
+      ASPNETCORE_ENVIRONMENT: Production
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-lectora}
     depends_on:
       postgres:
         condition: service_healthy
