@@ -16,4 +16,12 @@ public static class EntityMapping
             recording.CreatedAt
         );
     }
+    
+    public static SubjectDTO Dto(this Subject subject)
+    {
+        return new SubjectDTO(
+            subject.Id,
+            subject.Name
+        );
+    }
 }

@@ -18,6 +18,7 @@ var connectionString = new NpgsqlConnectionStringBuilder
 }.ConnectionString;
 
 builder.Services.AddScoped<RecordingService>();
+builder.Services.AddScoped<SubjectService>();
 
 builder.Services.AddDbContext<AppDbContext>(o => o
     .UseNpgsql(connectionString)
