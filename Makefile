@@ -10,3 +10,12 @@ dev: ## Start the dev stack
 
 init: ## Initialize the project
 	@bash scripts/init.sh
+
+down: ## down the dev stack
+	@bash scripts/dev-down.sh
+
+log: ## log service or all
+	@bash scripts/log.sh
+
+restart: ## restart service or all
+	@bash scripts/restart.sh
