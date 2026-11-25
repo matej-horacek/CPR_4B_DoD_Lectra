@@ -2,15 +2,16 @@
 
 namespace api.Controllers
 {
+    [ApiController, Route("recordings")]
     public class RecordingController : Controller
     {
         [HttpPost]
-        [Route("{controller}/upload")]
-        public async Task<IActionResult> Upload(CancellationToken ct)
+        [Route("upload")]
+        public async Task<IActionResult> Upload(IFormFile file, CancellationToken ct)
         {
             var id = Guid.CreateVersion7();
 
-            var directory = Path.Combine(Path.GetTempPath(), "recordings");
+            var directory = Path.Combine("/var", "recordings");
 
             Directory.CreateDirectory(directory);
 
@@ -27,7 +28,7 @@ namespace api.Controllers
                     useAsync: true
                 );
 
-                await Request.Body.CopyToAsync(destination, ct);
+                await file.CopyToAsync(destination, ct);
 
                 return Ok(new { id, size = destination.Length });
             }

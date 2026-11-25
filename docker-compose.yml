@@ -10,6 +10,7 @@ services:
       - ./api:/src
       - /src/bin
       - /src/obj
+      - ./data:/var/recordings
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       POSTGRES_HOST: postgres
