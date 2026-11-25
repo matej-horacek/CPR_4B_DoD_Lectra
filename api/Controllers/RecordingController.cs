@@ -1,9 +1,11 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using api.Models;
+using api.Services;
+using Microsoft.AspNetCore.Mvc;
 
 namespace api.Controllers
 {
     [ApiController, Route("recordings")]
-    public class RecordingController : Controller
+    public class RecordingController(RecordingService recordingService) : Controller
     {
         [HttpPost]
         [Route("upload")]
@@ -40,5 +42,10 @@ namespace api.Controllers
                 throw;
             }
         }
+        
+        [HttpGet]
+        public async Task<IEnumerable<RecordingDTO>> Get(CancellationToken ct) =>
+            await recordingService.GetRecordingsAsync(ct);
+            
     }
 }
