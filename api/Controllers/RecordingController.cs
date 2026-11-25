@@ -1,23 +1,19 @@
-﻿using api.Models;
-using api.Services;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 
 namespace api.Controllers
 {
-    [ApiController]
-    [Route("api/recordings")]
-    public class RecordingController(RecordingService recordingService) : Controller
+    [ApiController, Route("recordings")]
+    public class RecordingController : Controller
     {
         [HttpPost]
-        [Route("/upload")]
-        public async Task<IActionResult> Upload(CancellationToken ct)
+        [Route("upload")]
+        public async Task<IActionResult> Upload(IFormFile file, CancellationToken ct)
         {
             var id = Guid.CreateVersion7();
 
             var directory = Path.Combine("/var/recordings");
 
             Directory.CreateDirectory(directory);
-            Console.WriteLine(directory);
 
             var filePath = Path.Combine(directory, $"{id}.mp3");
 
@@ -32,7 +28,7 @@ namespace api.Controllers
                     useAsync: true
                 );
 
-                await Request.Body.CopyToAsync(destination, ct);
+                await file.CopyToAsync(destination, ct);
 
                 return Ok(new { id, size = destination.Length });
             }
@@ -43,12 +39,6 @@ namespace api.Controllers
 
                 throw;
             }
-        }
-
-        [HttpGet]
-        public async Task<IEnumerable<RecordingDTO>> GetRecordings(CancellationToken ct)
-        {
-            return await recordingService.GetRecordingsAsync(ct);
         }
     }
 }
