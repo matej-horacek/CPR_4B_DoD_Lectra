@@ -11,29 +11,46 @@ import {
 import { AudioPlayer } from './AudioPlayer';
 
 
+
 export default function App() {
   const audioRecorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
   const [audioUri, setAudioUri] = useState<string | null>(null);
+  const [recordingStatus, setRecordingStatus] = useState<boolean>(false);
 
   const recording = audioRecorder.getStatus().isRecording;
 
   useEffect(() => {
     return () => {
-      if (recording) {
+    //   if (recording) {
         audioRecorder.stop();
-      }
+        setRecordingStatus(false)
+    //   }
     };
   }, []);
 
 
   const record = async () => {
-    await setAudioModeAsync({
-      playsInSilentMode: true,
-      allowsRecording: true,
-      allowsBackgroundRecording: true,
-    });
-    await audioRecorder.prepareToRecordAsync();
-    await audioRecorder.record();
+
+    let status = await AudioModule.getRecordingPermissionsAsync();
+    if(!status.granted){
+        status = await AudioModule.requestRecordingPermissionsAsync();
+    }
+
+    if(status.granted){
+        await setAudioModeAsync({
+            playsInSilentMode: true,
+            allowsRecording: true,
+            allowsBackgroundRecording: true,
+        });
+        await audioRecorder.prepareToRecordAsync();
+        await audioRecorder.record();
+
+        setRecordingStatus(true);
+    }else{
+        Alert.alert('Permission to access microphone was denied');
+    }
+
+    
   };
 
   const stopRecording = async () => {
@@ -41,6 +58,7 @@ export default function App() {
     await audioRecorder.stop();
 
     setAudioUri(audioRecorder.uri);
+    setRecordingStatus(false)
   };
 
   useEffect(() => {
@@ -66,8 +84,8 @@ export default function App() {
     <View style={styles.container}>
       <Text style={styles.status}>Status: {recording ? "Recording":"ready for recording"}</Text>
       <Button
-        title={recording ? 'Stop Recording' : 'Start Recording'}
-        onPress={recording ? stopRecording : record}
+        title={recordingStatus ? 'Stop Recording' : 'Start Recording'}
+        onPress={recordingStatus ? stopRecording : record}
       />
       {audioUri && (
         <Text style={styles.uriText}>
