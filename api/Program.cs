@@ -17,7 +17,6 @@ var connectionString = new NpgsqlConnectionStringBuilder
     Password = cfg["POSTGRES_PASSWORD"] ?? "postgres",
 }.ConnectionString;
 
-// Services
 builder.Services.AddDbContext<AppDbContext>(o => o
     .UseNpgsql(connectionString)
     .UseSnakeCaseNamingConvention());
