@@ -1,4 +1,5 @@
-﻿using api.Models;
+﻿using api.Data.Entities;
+using api.Models;
 using api.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -42,10 +43,9 @@ namespace api.Controllers
                 throw;
             }
         }
-        
+
         [HttpGet]
-        public async Task<IEnumerable<RecordingDTO>> Get(CancellationToken ct) =>
-            await recordingService.GetRecordingsAsync(ct);
-            
+        public async Task<IEnumerable<RecordingDTO>> GetAll(CancellationToken ct) =>
+            (await recordingService.GetRecordingsAsync(ct)).Select(r => r.Dto());
     }
 }
