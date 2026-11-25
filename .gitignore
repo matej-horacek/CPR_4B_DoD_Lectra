@@ -1,0 +1,13 @@
+.env
+.env.*
+!.env.example
+
+.vs/
+.idea/
+.vscode/
+*.user
+*.suo
+
+.DS_Store
+Thumbs.db
+

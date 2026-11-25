@@ -1,4 +1,53 @@
-# Jak vyvíjet feature
+# Vývoj
+
+## První spuštění
+
+1. Naklonuj repozitář a přepni se na `dev`:
+   ```bash
+   git clone git@github.com:matej-horacek/CPR_4B_DoD_Lectora.git
+   cd CPR_4B_DoD_Lectora
+   git switch dev
+   ```
+2. Inicializuj projekt (stačí jednou):
+   ```bash
+   make init 
+   ```
+   Skript `scripts/init.sh` 
+
+3. Spusť vývojové prostředí:
+   ```bash
+   make dev
+   ```
+   Skript `scripts/dev.sh`
+   - Swagger: <http://localhost:5125/swagger>
+   - PostgreSQL: `localhost:5432`
+
+## Příkazy
+
+| Příkaz                                                   | Co dělá                              |
+| -------------------------------------------------------- | ------------------------------------ |
+| `make`                                                   | vypíše dostupné příkazy              |
+| `make init`                                              |  `scripts/init.sh`  |
+| `make dev`                                               |  `scripts/dev.sh` |
+| `docker compose logs -f api`                             | logy API                             |
+| `docker compose down`                                    | zastaví vývojové prostředí           |
+| `docker compose -f docker-compose.prod.yml up --build -d` | spustí produkční verzi               |
+
+## Pojmenování větví
+
+Větev se jmenuje `typ/kratky-popis` – malá písmena, bez diakritiky, slova oddělená pomlčkou.
+
+| Prefix      | Kdy ho použít                              | Příklad                  |
+| ----------- | ------------------------------------------ | ------------------------ |
+| `feat/`     | nová funkce                                | `feat/prihlaseni`        |
+| `fix/`      | oprava chyby                               | `fix/validace-emailu`    |
+| `docs/`     | jen dokumentace                            | `docs/navod-na-spusteni` |
+| `refactor/` | úprava kódu beze změny chování             | `refactor/user-service`  |
+| `chore/`    | nastavení projektu, CI, závislosti         | `chore/ci-workflow`      |
+
+Větve `main` a `dev` jsou stálé, nepushuje se do nich napřímo.
+
+## Jak vyvíjet feature
 
 1. Aktualizuj `dev` a vytvoř větev:
    ```bash
