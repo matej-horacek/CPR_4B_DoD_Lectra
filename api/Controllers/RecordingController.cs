@@ -1,5 +1,4 @@
-﻿using api.Data.Entities;
-using api.Models;
+﻿using api.Models;
 using api.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -10,7 +9,10 @@ namespace api.Controllers
     {
         [HttpPost]
         [Route("upload")]
-        public async Task<IActionResult> Upload(IFormFile file, CancellationToken ct)
+        public async Task<IActionResult> Upload(
+            [FromBody] RecordingUploadRequest request,
+            CancellationToken ct
+        )
         {
             var id = Guid.CreateVersion7();
 
@@ -31,9 +33,17 @@ namespace api.Controllers
                     useAsync: true
                 );
 
-                await file.CopyToAsync(destination, ct);
+                await request.File.CopyToAsync(destination, ct);
 
-                return Ok(new { id, size = destination.Length });
+                await recordingService.SaveRecordingAsync(
+                    filePath,
+                    request.UserId,
+                    request.SubjectId,
+                    request.Title,
+                    ct
+                );
+
+                return Ok();
             }
             catch
             {
@@ -43,7 +53,7 @@ namespace api.Controllers
                 throw;
             }
         }
-
+        
         [HttpGet]
         public async Task<IEnumerable<RecordingDTO>> GetAll(CancellationToken ct) =>
             (await recordingService.GetRecordingsAsync(ct)).Select(r => r.Dto());
