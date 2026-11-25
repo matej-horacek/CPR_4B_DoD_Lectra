@@ -11,6 +11,9 @@ dev: ## Start the dev stack
 init: ## Initialize the project
 	@bash scripts/init.sh
 
+convert-czech: ## Convert CzechSpeech model to CTranslate2
+	docker compose --profile setup run --rm convert
+
 down: ## down the dev stack
 	@bash scripts/dev-down.sh
 

@@ -33,6 +33,13 @@ services:
       OMP_NUM_THREADS: "4"
       WHISPER_MODEL: "auto"
 
+  convert:
+    build:
+      context: ./whisper/convert
+    profiles: ["setup"]
+    volumes:
+      - ./whisper/models:/models
+
   postgres:
     image: postgres:17
     restart: unless-stopped

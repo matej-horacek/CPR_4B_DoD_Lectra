@@ -45,6 +45,14 @@ services:
     networks:
       - lectora-db
 
+  convert:
+    build:
+      context: ./whisper/convert
+    profiles: ["setup"]
+    user: "${HOST_UID:-0}:${HOST_GID:-0}"
+    volumes:
+      - ./whisper/models:/models
+
   postgres:
     container_name: lectora-postgres
     image: postgres:17

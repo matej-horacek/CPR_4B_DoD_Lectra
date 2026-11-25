@@ -26,8 +26,6 @@ namespace api.Controllers
             _config = config;
             _logger = logger;
 
-            // In Docker container, recordings are mounted at /var/recordings.
-            // In local development on host, fall back to relative ./data folder if /var/recordings is unavailable.
             var configuredPath = _config["RECORDINGS_PATH"];
             if (!string.IsNullOrWhiteSpace(configuredPath))
             {
@@ -92,34 +90,48 @@ namespace api.Controllers
                 }
 
                 // Transcribe immediately
-                await using var readStream = System.IO.File.OpenRead(audioFilePath);
-                var transcriptResult = await _whisperClient.TranscribeAudioAsync(
-                    readStream,
-                    file.FileName,
-                    language,
-                    model,
-                    ct
-                );
-
-                // Save output text file
-                var textFileName = $"{id}.txt";
-                var textFilePath = Path.Combine(_recordingsDirectory, textFileName);
-                await System.IO.File.WriteAllTextAsync(textFilePath, transcriptResult.Text, ct);
-
-                return Ok(new
+                try
                 {
-                    id,
-                    fileName = audioFileName,
-                    size = file.Length,
-                    filePath = audioFilePath,
-                    transcriptPath = textFilePath,
-                    transcript = transcriptResult.Text,
-                    details = transcriptResult
-                });
+                    await using var readStream = System.IO.File.OpenRead(audioFilePath);
+                    var transcriptResult = await _whisperClient.TranscribeAudioAsync(
+                        readStream,
+                        file.FileName,
+                        language,
+                        model,
+                        ct
+                    );
+
+                    var textFileName = $"{id}.txt";
+                    var textFilePath = Path.Combine(_recordingsDirectory, textFileName);
+                    await System.IO.File.WriteAllTextAsync(textFilePath, transcriptResult.Text, ct);
+
+                    return Ok(new
+                    {
+                        id,
+                        fileName = audioFileName,
+                        size = file.Length,
+                        filePath = audioFilePath,
+                        transcriptPath = textFilePath,
+                        transcript = transcriptResult.Text,
+                        details = transcriptResult
+                    });
+                }
+                catch (WhisperException ex)
+                {
+                    _logger.LogError(ex, "Whisper transcription failed during upload: {Message}", ex.Message);
+                    return StatusCode(ex.StatusCode ?? StatusCodes.Status502BadGateway, new
+                    {
+                        id,
+                        fileName = audioFileName,
+                        size = file.Length,
+                        filePath = audioFilePath,
+                        error = ex.Message
+                    });
+                }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to upload or transcribe file {FileName}", file.FileName);
+                _logger.LogError(ex, "Failed to upload file {FileName}", file.FileName);
                 if (System.IO.File.Exists(audioFilePath) && !transcribe)
                 {
                     try { System.IO.File.Delete(audioFilePath); } catch { /* ignore */ }
@@ -144,44 +156,72 @@ namespace api.Controllers
 
             _logger.LogInformation("Starting on-demand transcription for recording {Id} ({File})", id, audioFile);
 
-            await using var readStream = System.IO.File.OpenRead(audioFile);
-            var transcriptResult = await _whisperClient.TranscribeAudioAsync(
-                readStream,
-                Path.GetFileName(audioFile),
-                language,
-                model,
-                ct
-            );
-
-            // Save output text file
-            var textFileName = $"{id}.txt";
-            var textFilePath = Path.Combine(_recordingsDirectory, textFileName);
-            await System.IO.File.WriteAllTextAsync(textFilePath, transcriptResult.Text, ct);
-
-            // Update database entity if present
-            if (int.TryParse(id, out var intId) || false)
+            try
             {
-                var recording = await _dbContext.Recordings.FirstOrDefaultAsync(r => r.Id == intId, ct);
-                if (recording != null)
+                await using var readStream = System.IO.File.OpenRead(audioFile);
+                var transcriptResult = await _whisperClient.TranscribeAudioAsync(
+                    readStream,
+                    Path.GetFileName(audioFile),
+                    language,
+                    model,
+                    ct
+                );
+
+                // Save output text file
+                var textFileName = $"{id}.txt";
+                var textFilePath = Path.Combine(_recordingsDirectory, textFileName);
+                await System.IO.File.WriteAllTextAsync(textFilePath, transcriptResult.Text, ct);
+
+                // Update database entity if present
+                if (int.TryParse(id, out var intId))
                 {
-                    recording.NotePath = textFilePath;
-                    recording.ProcessingResults.Add(new ProcessingResult
+                    var recording = await _dbContext.Recordings.FirstOrDefaultAsync(r => r.Id == intId, ct);
+                    if (recording != null)
                     {
-                        Step = ProcessingStep.Transcription,
-                        Message = $"Completed ({transcriptResult.Language}, {transcriptResult.AudioSeconds}s audio)",
-                        CreatedAt = DateTimeOffset.UtcNow
-                    });
-                    await _dbContext.SaveChangesAsync(ct);
+                        recording.NotePath = textFilePath;
+                        recording.ProcessingResults.Add(new ProcessingResult
+                        {
+                            Step = ProcessingStep.Transcription,
+                            Message = $"Completed ({transcriptResult.Language}, {transcriptResult.AudioSeconds}s audio)",
+                            CreatedAt = DateTimeOffset.UtcNow
+                        });
+                        await _dbContext.SaveChangesAsync(ct);
+                    }
                 }
-            }
 
-            return Ok(new
+                return Ok(new
+                {
+                    id,
+                    transcriptPath = textFilePath,
+                    transcript = transcriptResult.Text,
+                    details = transcriptResult
+                });
+            }
+            catch (WhisperException ex)
             {
-                id,
-                transcriptPath = textFilePath,
-                transcript = transcriptResult.Text,
-                details = transcriptResult
-            });
+                _logger.LogError(ex, "Whisper transcription failed for {Id}: {Message}", id, ex.Message);
+
+                if (int.TryParse(id, out var intId))
+                {
+                    var recording = await _dbContext.Recordings.FirstOrDefaultAsync(r => r.Id == intId, ct);
+                    if (recording != null)
+                    {
+                        recording.ProcessingResults.Add(new ProcessingResult
+                        {
+                            Step = ProcessingStep.Transcription,
+                            Message = $"Failed: {ex.Message}",
+                            CreatedAt = DateTimeOffset.UtcNow
+                        });
+                        await _dbContext.SaveChangesAsync(ct);
+                    }
+                }
+
+                return StatusCode(ex.StatusCode ?? StatusCodes.Status502BadGateway, new
+                {
+                    id,
+                    error = ex.Message
+                });
+            }
         }
 
         [HttpGet("{id}/transcript")]
