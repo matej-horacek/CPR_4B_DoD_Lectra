@@ -1,5 +1,6 @@
 using api.Data;
 using api.Data.Entities;
+using api.Services;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using Scalar.AspNetCore;
@@ -16,7 +17,7 @@ var connectionString = new NpgsqlConnectionStringBuilder
     Password = cfg["POSTGRES_PASSWORD"] ?? "postgres",
 }.ConnectionString;
 
-// Sem přidávejte svoje services
+builder.Services.AddScoped<RecordingService>();
 
 builder.Services.AddDbContext<AppDbContext>(o => o
     .UseNpgsql(connectionString)
