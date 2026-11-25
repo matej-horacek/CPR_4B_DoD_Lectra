@@ -6,7 +6,7 @@ namespace api.Controllers
     {
         [HttpPost]
         [Route("{controller}/upload")]
-        public async Task<IActionResult> Upload(CancellationToken ct)
+        public async Task<IActionResult> Upload(IFormFile file, CancellationToken ct)
         {
             var id = Guid.CreateVersion7();
 
@@ -27,7 +27,7 @@ namespace api.Controllers
                     useAsync: true
                 );
 
-                await Request.Body.CopyToAsync(destination, ct);
+                await file.CopyToAsync(destination, ct);
 
                 return Ok(new { id, size = destination.Length });
             }
