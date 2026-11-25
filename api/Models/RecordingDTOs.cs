@@ -1,7 +1,8 @@
-﻿namespace api.Models;
+﻿using api.Data.Entities;
 
-public record RecordingDTO
-(
+namespace api.Models;
+
+public record RecordingDTO(
     int Id,
     int? UserId,
     int SubjectId,
@@ -10,3 +11,5 @@ public record RecordingDTO
     string? NotePath,
     DateTimeOffset CreatedAt
 );
+
+public record RecordingUploadRequest(IFormFile File, int UserId, int SubjectId, string Title);
